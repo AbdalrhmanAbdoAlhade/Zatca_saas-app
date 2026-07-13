@@ -8,6 +8,7 @@ use App\Http\Requests\Invoice\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
+use App\Services\Zatca\ZatcaInvoiceProcessingService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -16,8 +17,10 @@ class InvoiceController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(protected InvoiceService $invoiceService)
-    {
+    public function __construct(
+        protected InvoiceService $invoiceService,
+        protected ZatcaInvoiceProcessingService $zatcaProcessingService,
+    ) {
     }
 
     public function index(Request $request)
@@ -63,5 +66,16 @@ class InvoiceController extends Controller
         }
 
         return $this->success(null, __('messages.deleted_successfully'));
+    }
+
+    /**
+     * توليد XML (UBL 2.1 غير موقّع) + QR أساسي للفاتورة.
+     * ملحوظة: ده مش الشكل النهائي المعتمد من ZATCA - راجع تحذيرات ZatcaInvoiceXmlBuilder.
+     */
+    public function generateXml(Invoice $invoice)
+    {
+        $invoice = $this->zatcaProcessingService->generateXmlAndQr($invoice);
+
+        return $this->success(new InvoiceResource($invoice), __('invoices.xml_generated'));
     }
 }

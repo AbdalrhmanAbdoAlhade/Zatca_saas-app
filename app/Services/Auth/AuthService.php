@@ -5,7 +5,9 @@ namespace App\Services\Auth;
 use App\Models\Company;
 use App\Models\CompanySetting;
 use App\Models\CompanyZatcaSetting;
+use App\Models\Plan;
 use App\Models\Role;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +53,22 @@ class AuthService
             CompanySetting::create([
                 'company_id' => $company->id,
             ]);
+
+            // اشتراك مجاني افتراضي عشان SubscriptionLimit middleware يلاقي subscription نشط من أول لحظة
+            $freePlan = Plan::where('slug', 'free')->first();
+
+            if ($freePlan) {
+                Subscription::create([
+                    'company_id' => $company->id,
+                    'plan_id' => $freePlan->id,
+                    'start_date' => now(),
+                    'end_date' => now()->addYear(),
+                    'invoices_limit' => $freePlan->max_invoices,
+                    'users_limit' => $freePlan->max_users,
+                    'auto_renew' => true,
+                    'status' => 'active',
+                ]);
+            }
 
             $token = $this->issueToken($user, $deviceName, $ip, $userAgent);
 
