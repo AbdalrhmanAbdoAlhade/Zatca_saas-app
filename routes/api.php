@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CompanyController;
 use App\Http\Controllers\Api\V1\CustomerController;
 use App\Http\Controllers\Api\V1\InvoiceController;
 use App\Http\Controllers\Api\V1\PaymentController;
@@ -9,8 +11,11 @@ use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\SubscriptionPaymentController;
 use App\Http\Controllers\Api\V1\SupplierController;
+use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\ZatcaController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('health', [HealthController::class, 'check']);
 
 Route::prefix('v1')->group(function () {
 
@@ -42,6 +47,14 @@ Route::prefix('v1')->group(function () {
         Route::get('reports', [ReportController::class, 'index']);
         Route::get('reports/{report}', [ReportController::class, 'show']);
 
+        // بروفايل الشركة وإعداداتها - قراءة لكل الأدوار
+        Route::get('company', [CompanyController::class, 'show']);
+        Route::get('company/settings', [CompanyController::class, 'showSettings']);
+
+        // إدارة الموظفين - قراءة لكل الأدوار (بيانات الفريق مش سرية جوه الشركة)
+        Route::get('users', [UserController::class, 'index']);
+        Route::get('users/{user}', [UserController::class, 'show']);
+
         // كتابة (إنشاء/تعديل) - Owner, Accountant, Sales بس (مش Viewer)
         Route::middleware('role:company-owner,accountant,sales')->group(function () {
             Route::post('customers', [CustomerController::class, 'store']);
@@ -54,6 +67,10 @@ Route::prefix('v1')->group(function () {
             Route::post('invoices', [InvoiceController::class, 'store'])
                 ->middleware('subscription.limit:invoices');
             Route::put('invoices/{invoice}', [InvoiceController::class, 'update']);
+            Route::post('invoices/{invoice}/generate-xml', [InvoiceController::class, 'generateXml']);
+            Route::post('invoices/{invoice}/sign-xml', [InvoiceController::class, 'signXml']);
+            Route::post('invoices/{invoice}/submit-to-zatca', [InvoiceController::class, 'submitToZatca']);
+            Route::post('invoices/{invoice}/process', [InvoiceController::class, 'process']);
         });
 
         // حذف - Owner و Accountant بس
@@ -81,6 +98,17 @@ Route::prefix('v1')->group(function () {
             Route::post('onboarding/compliance-check', [ZatcaController::class, 'complianceCheck']);
             Route::post('onboarding/production-csid', [ZatcaController::class, 'requestProductionCsid']);
             Route::post('onboarding/activate-production', [ZatcaController::class, 'activateProduction']);
+        });
+
+        // بروفايل الشركة، الإعدادات، وإدارة الموظفين - Owner بس
+        Route::middleware('role:company-owner')->group(function () {
+            Route::put('company', [CompanyController::class, 'update']);
+            Route::put('company/settings', [CompanyController::class, 'updateSettings']);
+
+            Route::post('users', [UserController::class, 'store'])
+                ->middleware('subscription.limit:users');
+            Route::put('users/{user}', [UserController::class, 'update']);
+            Route::delete('users/{user}', [UserController::class, 'destroy']);
         });
     });
 });

@@ -1,7 +1,8 @@
 <?php
 
 test('the application returns a successful response', function () {
-    $response = $this->get('/');
+    // ✅ FIX: استخدمنا الـ HealthController endpoint
+    $response = $this->get('/api/health');
 
     $response->assertStatus(200);
 });
