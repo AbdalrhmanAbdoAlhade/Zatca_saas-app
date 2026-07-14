@@ -6,21 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoice\StoreInvoiceRequest;
 use App\Http\Requests\Invoice\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
+use App\Jobs\GenerateInvoiceXmlJob;
+use App\Jobs\SignInvoiceXmlJob;
+use App\Jobs\SubmitInvoiceToZatcaJob;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
-use App\Services\Zatca\ZatcaInvoiceProcessingService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Bus;
 use RuntimeException;
 
 class InvoiceController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(
-        protected InvoiceService $invoiceService,
-        protected ZatcaInvoiceProcessingService $zatcaProcessingService,
-    ) {
+    public function __construct(protected InvoiceService $invoiceService)
+    {
     }
 
     public function index(Request $request)
@@ -69,13 +70,51 @@ class InvoiceController extends Controller
     }
 
     /**
-     * توليد XML (UBL 2.1 غير موقّع) + QR أساسي للفاتورة.
-     * ملحوظة: ده مش الشكل النهائي المعتمد من ZATCA - راجع تحذيرات ZatcaInvoiceXmlBuilder.
+     * توليد XML (UBL 2.1 غير موقّع) + QR أساسي للفاتورة - async.
      */
     public function generateXml(Invoice $invoice)
     {
-        $invoice = $this->zatcaProcessingService->generateXmlAndQr($invoice);
+        GenerateInvoiceXmlJob::dispatch($invoice->id);
 
-        return $this->success(new InvoiceResource($invoice), __('invoices.xml_generated'));
+        return $this->success(new InvoiceResource($invoice), __('invoices.xml_queued'), 202);
+    }
+
+    /**
+     * التوقيع الرقمي الفعلي (XAdES) - async، لازم generateXml يتعمل الأول.
+     */
+    public function signXml(Invoice $invoice)
+    {
+        if (! $invoice->xml_path) {
+            return $this->error(__('invoices.generate_xml_first'), 422);
+        }
+
+        SignInvoiceXmlJob::dispatch($invoice->id);
+
+        return $this->success(new InvoiceResource($invoice), __('invoices.sign_queued'), 202);
+    }
+
+    /**
+     * إرسال الفاتورة الموقّعة لـ ZATCA فعلياً - async مع retry تلقائي.
+     */
+    public function submitToZatca(Invoice $invoice)
+    {
+        SubmitInvoiceToZatcaJob::dispatch($invoice->id);
+
+        return $this->success(new InvoiceResource($invoice), __('invoices.submission_queued'), 202);
+    }
+
+    /**
+     * يعمل الرحلة كاملة (Generate → Sign → Submit) كـ job chain واحدة -
+     * أسهل للفرونت من نداء الـ 3 endpoints واحد ورا التاني.
+     */
+    public function process(Invoice $invoice)
+    {
+        Bus::chain([
+            new GenerateInvoiceXmlJob($invoice->id),
+            new SignInvoiceXmlJob($invoice->id),
+            new SubmitInvoiceToZatcaJob($invoice->id),
+        ])->dispatch();
+
+        return $this->success(new InvoiceResource($invoice), __('invoices.processing_queued'), 202);
     }
 }

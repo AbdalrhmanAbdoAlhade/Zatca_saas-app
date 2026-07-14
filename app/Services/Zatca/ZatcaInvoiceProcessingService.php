@@ -11,6 +11,7 @@ class ZatcaInvoiceProcessingService
     public function __construct(
         protected ZatcaInvoiceXmlBuilder $xmlBuilder,
         protected ZatcaQrEncoder $qrEncoder,
+        protected ZatcaInvoiceSigningService $signingService,
     ) {
     }
 
@@ -48,6 +49,22 @@ class ZatcaInvoiceProcessingService
             'xml_path' => $xmlPath,
             'invoice_hash' => $invoiceHash,
             'qr_code' => $qrCode,
+        ]);
+
+        return $invoice->fresh();
+    }
+
+    /**
+     * التوقيع الرقمي الفعلي (XAdES) - لازم generateXmlAndQr يتعمل الأول،
+     * ولازم الشركة تكون خلصت المرحلة 1/2 من الـ ZATCA Onboarding (عندها certificate).
+     */
+    public function signInvoice(Invoice $invoice): Invoice
+    {
+        $result = $this->signingService->sign($invoice);
+
+        $invoice->update([
+            'xml_path' => $result['xml_path'],
+            'invoice_hash' => $result['invoice_hash'],
         ]);
 
         return $invoice->fresh();

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\GenerateReportJob;
 use App\Models\Invoice;
 use App\Models\Report;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -17,12 +18,36 @@ class ReportService
             ->paginate($filters['per_page'] ?? 20);
     }
 
-    public function generate(array $data): Report
+    /**
+     * بينشئ سجل التقرير فوراً بحالة processing، ويبعت Job يحسب البيانات في الخلفية.
+     */
+    public function requestGeneration(array $data): Report
     {
-        $companyId = Auth::user()->company_id;
+        $report = Report::create([
+            'company_id' => Auth::user()->company_id,
+            'generated_by' => Auth::id(),
+            'report_type' => $data['report_type'],
+            'source_module' => 'invoices',
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'],
+            'status' => 'pending',
+        ]);
 
-        $invoicesQuery = Invoice::where('company_id', $companyId)
-            ->whereBetween('issue_date', [$data['start_date'], $data['end_date']]);
+        GenerateReportJob::dispatch($report->id);
+
+        return $report;
+    }
+
+    /**
+     * بتتنادى من جوه GenerateReportJob بس - الحساب الفعلي.
+     */
+    public function compute(Report $report): void
+    {
+        $report->update(['status' => 'processing']);
+
+        $invoicesQuery = Invoice::withoutGlobalScopes()
+            ->where('company_id', $report->company_id)
+            ->whereBetween('issue_date', [$report->start_date, $report->end_date]);
 
         $totalSales = (clone $invoicesQuery)
             ->whereIn('invoice_type', ['tax_invoice', 'simplified_tax_invoice'])
@@ -45,13 +70,7 @@ class ReportService
             ->groupBy('zatca_status')
             ->pluck('total', 'zatca_status');
 
-        return Report::create([
-            'company_id' => $companyId,
-            'generated_by' => Auth::id(),
-            'report_type' => $data['report_type'],
-            'source_module' => 'invoices',
-            'start_date' => $data['start_date'],
-            'end_date' => $data['end_date'],
+        $report->update([
             'status' => 'completed',
             'data' => [
                 'total_sales' => (float) $totalSales,

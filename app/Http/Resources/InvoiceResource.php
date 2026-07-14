@@ -33,7 +33,10 @@ class InvoiceResource extends JsonResource
             'icv' => $this->icv,
             'invoice_hash' => $this->invoice_hash,
             'qr_code' => $this->qr_code,
+            'zatca_uuid' => $this->zatca_uuid,
             'zatca_status' => $this->zatca_status,
+            'zatca_response' => $this->zatca_response,
+            'zatca_submitted_at' => $this->zatca_submitted_at,
 
             'items' => InvoiceItemResource::collection($this->whenLoaded('items')),
 

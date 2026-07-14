@@ -27,9 +27,9 @@ class ReportController extends Controller
 
     public function store(StoreReportRequest $request)
     {
-        $report = $this->reportService->generate($request->validated());
+        $report = $this->reportService->requestGeneration($request->validated());
 
-        return $this->success(new ReportResource($report), __('messages.created_successfully'), 201);
+        return $this->success(new ReportResource($report), __('messages.report_queued'), 202);
     }
 
     public function show(Report $report)
