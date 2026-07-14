@@ -1,0 +1,2298 @@
+{
+  "info": {
+    "_postman_id": "1a2bbef8-195b-4a82-9c49-22439a304693",
+    "name": "ZATCA SaaS API - توثيق كامل",
+    "description": "# 🏢 ZATCA SaaS API\n\n## نظام فوترة إلكترونية متكامل متوافق مع متطلبات هيئة الزكاة والضريبة السعودية (ZATCA)\n\n### 🔐 آلية المصادقة\n- كل الـ endpoints (ما عدا التسجيل والدخول) بتحتاج `Authorization: Bearer {token}`\n- التوكن بيتعمل وقت تسجيل الدخول أو تسجيل شركة جديدة\n- التوكن بيتسجل مع بيانات الجهاز (IP, User-Agent, Device Name)\n\n### 🌍 اللغة\n- ابعت header `Accept-Language: ar` للعربي أو `en` للإنجليزي\n- الافتراضي: عربي\n\n### 📱 Multi-Tenancy\n- كل يوزر تابع لشركة واحدة\n- اليوزر ميقدرش يشوف/يعدل بيانات شركة تانية\n- الـ `company_id` بيتحط تلقائي من التوكن\n\n### ⚠️ ملاحظات مهمة\n- الفاتورة لازم تعدي مراحل: Draft → Generate XML → Sign XML → Submit to ZATCA\n- مينفعش تعدل/تحذف فاتورة بعد ما تتبعت لـ ZATCA\n- الـ ICV (Invoice Counter Value) بيزيد تلقائي لكل شركة\n- الـ Subscription Limit بيمنعك لو وصلت للحد الأقصى\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "34212662",
+    "_collection_link": "https://go.postman.co/collection/34212662-1a2bbef8-195b-4a82-9c49-22439a304693?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "🔐 المصادقة (Auth)",
+      "item": [
+        {
+          "name": "📝 تسجيل شركة جديدة",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": {\n    \"trade_name_ar\": \"شركة تجريبية\",\n    \"trade_name_en\": \"Test Company\",\n    \"vat_number\": \"300000000050003\",\n    \"commercial_registration_number\": \"1234567850\",\n    \"country\": \"SA\",\n    \"city\": \"Riyadh\"\n  },\n  \"owner\": {\n    \"name\": \"المالك التجريبي\",\n    \"email\": \"adilh.sa@gmail.com\",\n    \"phone\": \"0555579240\",\n    \"password\": \"Faiez1010$\",\n    \"password_confirmation\": \"Faiez1010$\"\n  },\n  \"device_name\": \"Postman Desktop\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "register"
+              ]
+            },
+            "description": "تسجيل شركة جديدة + مالك (Company Owner). vat_number لازم يكون فريد. trade_name_ar مطلوب. password لازم 8 أحرف. بيتعمل تلقائي: شركة + يوزر + إعدادات ZATCA + إعدادات الشركة + اشتراك مجاني."
+          },
+          "response": []
+        },
+        {
+          "name": "🔑 تسجيل الدخول",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@test.com\",\n  \"password\": \"password123\",\n  \"device_name\": \"Postman Desktop\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "login"
+              ]
+            },
+            "description": "تسجيل الدخول. خزن الـ token في متغير {{token}}. أخطاء: 401 invalid_credentials, 401 user_inactive, 401 company_suspended."
+          },
+          "response": []
+        },
+        {
+          "name": "👤 بياناتي (Me)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "2|RybyzGRlza1kkbH3uOnT0itwPKkFPR4GVVWP9xL16d1b3a80",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me"
+              ]
+            },
+            "description": "جلب بيانات اليوزر الحالي مع الـ role والشركة."
+          },
+          "response": []
+        },
+        {
+          "name": "🚪 تسجيل الخروج",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "2|RybyzGRlza1kkbH3uOnT0itwPKkFPR4GVVWP9xL16d1b3a80",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "logout"
+              ]
+            },
+            "description": "تسجيل الخروج من الجهاز الحالي فقط. بيلغي التوكن الحالي بس."
+          },
+          "response": []
+        },
+        {
+          "name": "🚪 تسجيل الخروج من كل الأجهزة",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "3|cduiH4MKsf1Cvt5MoG23xIeiqwwpRb9x7jLenYvjd8188d85",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/logout-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "logout-all"
+              ]
+            },
+            "description": "تسجيل الخروج من كل الأجهزة. بيلغي كل التوكنات."
+          },
+          "response": []
+        },
+        {
+          "name": "📱 جلساتي (Sessions)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "4|4sHNdDGqWiwo0D7auCxsmnAMrSg807QzVrZ4gSJF447f5057",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions"
+              ]
+            },
+            "description": "قائمة جلسات تسجيل الدخول مع IP وآخر استخدام."
+          },
+          "response": []
+        },
+        {
+          "name": "❌ إلغاء جلسة معينة",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "4|4sHNdDGqWiwo0D7auCxsmnAMrSg807QzVrZ4gSJF447f5057",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/4",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "4"
+              ]
+            },
+            "description": "إلغاء توكن جهاز معين. غير 1 لـ ID التوكن. خطأ: 404 session_not_found."
+          },
+          "response": []
+        }
+      ],
+      "description": "تسجيل الدخول والخروج وإدارة الجلسات"
+    },
+    {
+      "name": "🏢 الشركة (Company)",
+      "item": [
+        {
+          "name": "📋 بيانات شركتي",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "5|T49zLelbO7vVXd0YSmcCIf0Z5D2qodNJCmiI6MSic6190db2",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/company",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company"
+              ]
+            },
+            "description": "جلب بيانات الشركة التابعة لليوزر الحالي."
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ تحديث بيانات الشركة",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "5|T49zLelbO7vVXd0YSmcCIf0Z5D2qodNJCmiI6MSic6190db2",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trade_name_ar\": \"اسم الشركة المحدث\",\n  \"trade_name_en\": \"Updated Company Name\",\n  \"owner_name\": \"المالك الجديد\",\n  \"commercial_registration_number\": \"1234567890\",\n  \"tax_certificate_number\": \"TC-123\",\n  \"country\": \"SA\",\n  \"city\": \"Jeddah\",\n  \"district\": \"الحمراء\",\n  \"street\": \"شارع الملك فهد\",\n  \"building_number\": \"123\",\n  \"additional_number\": \"4\",\n  \"postal_code\": \"12345\",\n  \"default_locale\": \"ar\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/company",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company"
+              ]
+            },
+            "description": "تحديث بيانات الشركة. كل الحقول اختيارية (except trade_name_ar و owner_name لو مبعوتين). default_locale: ar أو en. country: كود دولتين (مثلاً SA)."
+          },
+          "response": []
+        },
+        {
+          "name": "⚙️ إعدادات الشركة",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/company/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company",
+                "settings"
+              ]
+            },
+            "description": "جلب إعدادات الشركة (الألوان، الضريبة الافتراضية، إلخ)."
+          },
+          "response": []
+        },
+        {
+          "name": "⚙️ تحديث إعدادات الشركة",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "5|T49zLelbO7vVXd0YSmcCIf0Z5D2qodNJCmiI6MSic6190db2",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"primary_color\": \"#1a73e8\",\n  \"secondary_color\": \"#34a853\",\n  \"show_qr\": true,\n  \"show_vat\": true,\n  \"show_cr\": true,\n  \"default_tax_percentage\": 15,\n  \"invoice_pdf_language\": \"ar\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/company/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company",
+                "settings"
+              ]
+            },
+            "description": "تحديث إعدادات الشركة. primary_color/secondary_color: Hex colors. show_qr: إظهار QR code في PDF. show_vat: إظهار الرقم الضريبي. show_cr: إظهار السجل التجاري. default_tax_percentage: 0-100. invoice_pdf_language: ar أو en."
+          },
+          "response": []
+        }
+      ],
+      "description": "إدارة بيانات الشركة والإعدادات"
+    },
+    {
+      "name": "👥 المستخدمين (Users)",
+      "item": [
+        {
+          "name": "📋 قائمة المستخدمين",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "5|T49zLelbO7vVXd0YSmcCIf0Z5D2qodNJCmiI6MSic6190db2",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users?search=أحمد&role_id=2&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "أحمد"
+                },
+                {
+                  "key": "role_id",
+                  "value": "2"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "قائمة مستخدمين الشركة. Query: search (اسم/إيميل), role_id, per_page. صلاحيات: company-owner و accountant بس يقدروا يشوفوا."
+          },
+          "response": []
+        },
+        {
+          "name": "➕ إضافة مستخدم جديد",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "5|T49zLelbO7vVXd0YSmcCIf0Z5D2qodNJCmiI6MSic6190db2",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"موظف جديد\",\n  \"email\": \"employee@test.com\",\n  \"phone\": \"0511111111\",\n  \"password\": \"password123\",\n  \"role_id\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users"
+              ]
+            },
+            "description": "إضافة مستخدم جديد. company-owner بس يقدر يضيف. role_id لازم يكون موجود. email فريد. password 8 أحرف. Roles: company-owner, sales, accountant, viewer. خطأ: 422 users_limit_reached."
+          },
+          "response": []
+        },
+        {
+          "name": "👤 بيانات مستخدم",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "2"
+              ]
+            },
+            "description": "جلب بيانات مستخدم معين. غير 2 لـ ID. مينفعش تشوف يوزر من شركة تانية."
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ تحديث مستخدم",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"اسم محدث\",\n  \"email\": \"updated@test.com\",\n  \"phone\": \"0522222222\",\n  \"password\": \"newpassword123\",\n  \"role_id\": 2,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "2"
+              ]
+            },
+            "description": "تحديث بيانات مستخدم. company-owner بس يقدر يعدل. status: active أو inactive. خطأ: 422 cannot_delete_yourself."
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ حذف مستخدم",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "2"
+              ]
+            },
+            "description": "حذف مستخدم. company-owner بس. مينفعش تحذف نفسك أو آخر owner. أخطاء: 422 cannot_delete_yourself, 422 cannot_delete_last_owner."
+          },
+          "response": []
+        }
+      ],
+      "description": "إدارة مستخدمين الشركة (Company Owner بس يقدر يضيف/يعدل/يحذف)"
+    },
+    {
+      "name": "🧾 الفواتير (Invoices)",
+      "item": [
+        {
+          "name": "📋 قائمة الفواتير",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices?invoice_type=tax_invoice&invoice_status=draft&from=2026-01-01&to=2026-12-31&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices"
+              ],
+              "query": [
+                {
+                  "key": "invoice_type",
+                  "value": "tax_invoice"
+                },
+                {
+                  "key": "invoice_status",
+                  "value": "draft"
+                },
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-12-31"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "قائمة فواتير الشركة. Query: invoice_type (tax_invoice, simplified_tax_invoice, credit_note, debit_note, purchase_invoice, expense_invoice), invoice_status (draft, xml_generated, signed, submitted, cancelled), from/to (YYYY-MM-DD), per_page. بيرجع فواتير الشركة الحالية بس."
+          },
+          "response": []
+        },
+        {
+          "name": "➕ إنشاء فاتورة جديدة",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_type\": \"tax_invoice\",\n  \"customer_id\": 1,\n  \"supplier_id\": null,\n  \"reference_invoice_id\": null,\n  \"payment_method\": \"bank_transfer\",\n  \"issue_date\": \"2026-07-14\",\n  \"due_date\": \"2026-08-14\",\n  \"currency\": \"SAR\",\n  \"notes\": \"فاتورة تجريبية\",\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"name_ar\": \"منتج تجريبي\",\n      \"name_en\": \"Test Product\",\n      \"quantity\": 2,\n      \"unit_price\": 100,\n      \"discount_amount\": 0,\n      \"tax_percentage\": 15\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices"
+              ]
+            },
+            "description": "إنشاء فاتورة جديدة. invoice_type و issue_date و items مطلوبين. items.*.name_ar و quantity و unit_price مطلوبين. ICV: أول فاتورة = 1، كل فاتورة = ICV السابقة + 1، متسلسل منفصل لكل شركة. Invoice Hash: أول فاتورة previous_invoice_hash = null، بعدها = hash الفاتورة السابقة. الفاتورة بتتعمل draft. لازم تعدي: Generate XML → Sign → Submit. subscription.limit:invoices middleware بيمنع لو وصلت للحد."
+          },
+          "response": []
+        },
+        {
+          "name": "📄 بيانات فاتورة",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "1"
+              ]
+            },
+            "description": "جلب بيانات فاتورة معينة مع items و customer و supplier. مينفعش تشوف فاتورة من شركة تانية."
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ تحديث فاتورة (Draft بس)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 2,\n  \"payment_method\": \"cash\",\n  \"issue_date\": \"2026-07-15\",\n  \"due_date\": \"2026-08-15\",\n  \"notes\": \"ملاحظات محدثة\",\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"name_ar\": \"منتج محدث\",\n      \"quantity\": 3,\n      \"unit_price\": 150,\n      \"tax_percentage\": 15\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "1"
+              ]
+            },
+            "description": "تحديث فاتورة. مينفعش تعدل فاتورة اتبعتت لـ ZATCA (مش draft). items لو مبعوت بيتم استبدال القديمة. خطأ: 422 invoice_already_submitted."
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ حذف فاتورة (Draft بس)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "1"
+              ]
+            },
+            "description": "حذف فاتورة. مينفعش تحذف فاتورة اتبعتت لـ ZATCA. خطأ: 422 invoice_already_submitted."
+          },
+          "response": []
+        },
+        {
+          "name": "📤 توليد XML (Generate XML)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/1/generate-xml",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "1",
+                "generate-xml"
+              ]
+            },
+            "description": "توليد XML (UBL 2.1) للفاتورة. Job async. لازم يتعمل قبل signXml. رد 202."
+          },
+          "response": []
+        },
+        {
+          "name": "✍️ توقيع XML (Sign XML)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/1/sign-xml",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "1",
+                "sign-xml"
+              ]
+            },
+            "description": "التوقيع الرقمي (XAdES) على XML. Job async. لازم generateXml يتعمل الأول. خطأ: 422 generate_xml_first. رد 202."
+          },
+          "response": []
+        },
+        {
+          "name": "📡 إرسال لـ ZATCA (Submit)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/1/submit-to-zatca",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "1",
+                "submit-to-zatca"
+              ]
+            },
+            "description": "إرسال الفاتورة الموقعة لـ ZATCA. Job async مع retry. بعد الإرسال: مينفعش تعدل/تحذف الفاتورة! لازم Onboarding و Production mode. رد 202."
+          },
+          "response": []
+        },
+        {
+          "name": "🚀 العملية كاملة (Process)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/1/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "1",
+                "process"
+              ]
+            },
+            "description": "عمل الفاتورة كاملة (Generate → Sign → Submit) مرة واحدة. Chain of Jobs. أسهل من 3 endpoints. لو فشل خطوة الـ chain بيتوقف. رد 202."
+          },
+          "response": []
+        }
+      ],
+      "description": "إدارة الفواتير الإلكترونية - أهم جزء في النظام!"
+    },
+    {
+      "name": "👤 العملاء (Customers)",
+      "item": [
+        {
+          "name": "📋 قائمة العملاء",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers?search=أحمد&is_active=1&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "أحمد"
+                },
+                {
+                  "key": "is_active",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "قائمة عملاء الشركة. Query: search (اسم/رقم ضريبي), is_active (1/0), per_page. صلاحيات: كل roles يقدروا يشوفوا. sales و company-owner و accountant يقدروا يضيفوا."
+          },
+          "response": []
+        },
+        {
+          "name": "➕ إضافة عميل جديد",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_ar\": \"عميل تجريبي\",\n  \"name_en\": \"Test Customer\",\n  \"vat_number\": \"300000000000004\",\n  \"commercial_registration_number\": \"9876543210\",\n  \"email\": \"customer@test.com\",\n  \"phone\": \"0500000001\",\n  \"country\": \"SA\",\n  \"city\": \"Jeddah\",\n  \"district\": \"الحمراء\",\n  \"street\": \"شارع الملك فهد\",\n  \"building_number\": \"456\",\n  \"additional_number\": \"2\",\n  \"postal_code\": \"23456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers"
+              ]
+            },
+            "description": "إضافة عميل جديد. name_ar مطلوب. vat_number اختياري بس مهم للفواتير. العميل بيتربط تلقائي بـ company_id."
+          },
+          "response": []
+        },
+        {
+          "name": "👤 بيانات عميل",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "1"
+              ]
+            },
+            "description": "جلب بيانات عميل معين. مينفعش تشوف عميل من شركة تانية."
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ تحديث عميل",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_ar\": \"عميل محدث\",\n  \"email\": \"updated@customer.com\",\n  \"phone\": \"0511111111\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "1"
+              ]
+            },
+            "description": "تحديث بيانات عميل. sales و company-owner و accountant يقدروا يعدلوا."
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ حذف عميل",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "1"
+              ]
+            },
+            "description": "حذف عميل. company-owner بس. خطأ: 422 customer_has_invoices."
+          },
+          "response": []
+        }
+      ],
+      "description": "إدارة عملاء الشركة"
+    },
+    {
+      "name": "📦 المنتجات (Products)",
+      "item": [
+        {
+          "name": "📋 قائمة المنتجات",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products?search=منتج&is_active=1&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "منتج"
+                },
+                {
+                  "key": "is_active",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "قائمة منتجات الشركة. Query: search (اسم/SKU), is_active (1/0), per_page. صلاحيات: كل roles يقدروا يشوفوا. sales و company-owner و accountant يقدروا يضيفوا ويعدلوا."
+          },
+          "response": []
+        },
+        {
+          "name": "➕ إضافة منتج جديد",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_ar\": \"منتج تجريبي\",\n  \"name_en\": \"Test Product\",\n  \"sku\": \"PROD-001\",\n  \"description_ar\": \"وصف المنتج بالعربي\",\n  \"description_en\": \"Product description in English\",\n  \"unit_price\": 100,\n  \"tax_percentage\": 15,\n  \"unit\": \"piece\",\n  \"track_stock\": true,\n  \"stock_quantity\": 100\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ]
+            },
+            "description": "إضافة منتج جديد. name_ar و unit_price مطلوبين. sku اختياري بس يفضل فريد. track_stock: true/false. unit: piece, kg, liter, box."
+          },
+          "response": []
+        },
+        {
+          "name": "📦 بيانات منتج",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "1"
+              ]
+            },
+            "description": "جلب بيانات منتج معين. مينفعش تشوف منتج من شركة تانية."
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ تحديث منتج",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_ar\": \"منتج محدث\",\n  \"unit_price\": 150,\n  \"stock_quantity\": 50,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "1"
+              ]
+            },
+            "description": "تحديث بيانات منتج. sales و company-owner و accountant يقدروا يعدلوا."
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ حذف منتج",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "1"
+              ]
+            },
+            "description": "حذف منتج. company-owner بس. خطأ: 422 product_has_invoices."
+          },
+          "response": []
+        }
+      ],
+      "description": "إدارة منتجات الشركة"
+    },
+    {
+      "name": "🏭 الموردين (Suppliers)",
+      "item": [
+        {
+          "name": "📋 قائمة الموردين",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/suppliers?search=مورد&is_active=1&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "مورد"
+                },
+                {
+                  "key": "is_active",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "قائمة موردين الشركة. Query: search, is_active (1/0), per_page. صلاحيات: accountant و company-owner يقدروا يشوفوا ويضيفوا. sales و viewer ميقدروش."
+          },
+          "response": []
+        },
+        {
+          "name": "➕ إضافة مورد جديد",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_ar\": \"مورد تجريبي\",\n  \"name_en\": \"Test Supplier\",\n  \"vat_number\": \"300000000000005\",\n  \"commercial_registration_number\": \"5555555555\",\n  \"email\": \"supplier@test.com\",\n  \"phone\": \"0500000002\",\n  \"country\": \"SA\",\n  \"city\": \"Dammam\",\n  \"district\": \"الخبر\",\n  \"street\": \"شارع الملك سعود\",\n  \"building_number\": \"789\",\n  \"additional_number\": \"3\",\n  \"postal_code\": \"34567\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/suppliers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers"
+              ]
+            },
+            "description": "إضافة مورد جديد. accountant و company-owner بس يقدروا يضيفوا."
+          },
+          "response": []
+        },
+        {
+          "name": "🏭 بيانات مورد",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/suppliers/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers",
+                "1"
+              ]
+            },
+            "description": "جلب بيانات مورد معين. مينفعش تشوف مورد من شركة تانية."
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ تحديث مورد",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_ar\": \"مورد محدث\",\n  \"phone\": \"0522222222\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/suppliers/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers",
+                "1"
+              ]
+            },
+            "description": "تحديث بيانات مورد. accountant و company-owner يقدروا يعدلوا."
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ حذف مورد",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/suppliers/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers",
+                "1"
+              ]
+            },
+            "description": "حذف مورد. company-owner بس. خطأ: 422 supplier_has_invoices."
+          },
+          "response": []
+        }
+      ],
+      "description": "إدارة موردين الشركة"
+    },
+    {
+      "name": "💳 المدفوعات (Payments)",
+      "item": [
+        {
+          "name": "📋 قائمة المدفوعات",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments?invoice_id=1&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments"
+              ],
+              "query": [
+                {
+                  "key": "invoice_id",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "قائمة مدفوعات الشركة. Query: invoice_id, per_page. صلاحيات: accountant و company-owner يقدروا يشوفوا ويضيفوا."
+          },
+          "response": []
+        },
+        {
+          "name": "➕ إضافة دفعة جديدة",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_id\": 1,\n  \"amount\": 230,\n  \"payment_method\": \"bank_transfer\",\n  \"reference_number\": \"REF-123456\",\n  \"paid_at\": \"2026-07-14T10:00:00\",\n  \"notes\": \"دفعة أولى\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments"
+              ]
+            },
+            "description": "إضافة دفعة لفاتورة. invoice_id مطلوب. amount > 0. payment_method: cash, bank_transfer, mada, visa, mastercard, credit. paid_at مطلوب. reference_number اختياري. accountant و company-owner بس."
+          },
+          "response": []
+        },
+        {
+          "name": "💳 بيانات دفعة",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "1"
+              ]
+            },
+            "description": "جلب بيانات دفعة معينة. مينفعش تشوف دفعة من شركة تانية."
+          },
+          "response": []
+        }
+      ],
+      "description": "إدارة مدفوعات الفواتير"
+    },
+    {
+      "name": "📊 التقارير (Reports)",
+      "item": [
+        {
+          "name": "📋 قائمة التقارير",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reports?report_type=monthly&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports"
+              ],
+              "query": [
+                {
+                  "key": "report_type",
+                  "value": "monthly"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "قائمة تقارير الشركة. Query: report_type (daily, monthly, quarterly, yearly, custom), per_page. صلاحيات: accountant و company-owner يقدروا يشوفوا."
+          },
+          "response": []
+        },
+        {
+          "name": "➕ طلب تقرير جديد",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"report_type\": \"monthly\",\n  \"start_date\": \"2026-07-01\",\n  \"end_date\": \"2026-07-31\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/reports",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports"
+              ]
+            },
+            "description": "طلب إنشاء تقرير. report_type: daily, monthly, quarterly, yearly, custom. start_date و end_date مطلوبين. end_date لازم يكون بعد أو يساوي start_date. accountant و company-owner بس. رد 202."
+          },
+          "response": []
+        },
+        {
+          "name": "📊 بيانات تقرير",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reports/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "1"
+              ]
+            },
+            "description": "جلب بيانات تقرير معين. مينفعش تشوف تقرير من شركة تانية."
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ حذف تقرير",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reports/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "1"
+              ]
+            },
+            "description": "حذف تقرير. company-owner بس."
+          },
+          "response": []
+        }
+      ],
+      "description": "طلب إنشاء تقارير"
+    },
+    {
+      "name": "🏛️ ZATCA (هيئة الزكاة والضريبة)",
+      "item": [
+        {
+          "name": "⚙️ إعدادات ZATCA",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "5|T49zLelbO7vVXd0YSmcCIf0Z5D2qodNJCmiI6MSic6190db2",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/zatca",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "zatca"
+              ]
+            },
+            "description": "جلب إعدادات ZATCA للشركة. بيرجع: environment (sandbox/production), compliance_status (not_started, in_progress, passed, failed), onboarding_stage (0-4), compliance_csid, production_csid."
+          },
+          "response": []
+        },
+        {
+          "name": "🔐 توليد Compliance CSID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zatca/compliance-csid",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "zatca",
+                "compliance-csid"
+              ]
+            },
+            "description": "توليد Compliance CSID. otp بيجي من بوابة ZATCA. لازم تكون مسجل في بوابة ZATCA. خطوة أولى في Onboarding. أخطاء: 422 OTP غلط, 422 الشركة مش مسجلة."
+          },
+          "response": []
+        },
+        {
+          "name": "✅ فحص Compliance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_base64\": \"PD94bWwgdmVyc2lvbj0iMS4wIj8+\",\n  \"invoice_hash\": \"abc123...\",\n  \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zatca/compliance-check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "zatca",
+                "compliance-check"
+              ]
+            },
+            "description": "فحص Compliance. لازم compliance-csid الأول. بيرسل فاتورة تجريبية لـ ZATCA. لو نجح: تقدر تطلب Production CSID. أخطاء: 422 لازم تولد CSID, 422 الفاتورة مش متوافقة."
+          },
+          "response": []
+        },
+        {
+          "name": "🔑 طلب Production CSID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/zatca/production-csid",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "zatca",
+                "production-csid"
+              ]
+            },
+            "description": "طلب Production CSID. لازم تكون نجحت في compliance-check. بيفعل Production mode. بعدها تقدر تبعت فواتير حقيقية. خطأ: 422 لازم تعدي Compliance Check."
+          },
+          "response": []
+        },
+        {
+          "name": "🚀 تفعيل Production",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/zatca/activate-production",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "zatca",
+                "activate-production"
+              ]
+            },
+            "description": "تفعيل Production Mode. آخر خطوة في Onboarding. بعد التفعيل: كل الفواتير هتتبعت لـ ZATCA فعلياً. مينفعش ترجع لـ Sandbox. خطأ: 422 لازم تطلب Production CSID."
+          },
+          "response": []
+        }
+      ],
+      "description": "Onboarding وإدارة الإعدادات مع ZATCA"
+    },
+    {
+      "name": "📋 سجل الأنشطة (Activity Logs)",
+      "item": [
+        {
+          "name": "📋 قائمة الأنشطة",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/activity-logs?module=invoices&user_id=2&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "activity-logs"
+              ],
+              "query": [
+                {
+                  "key": "module",
+                  "value": "invoices"
+                },
+                {
+                  "key": "user_id",
+                  "value": "2"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "قائمة أنشطة الشركة. Query: module (invoices, customers, users), user_id, per_page. صلاحيات: company-owner و accountant بس."
+          },
+          "response": []
+        },
+        {
+          "name": "📋 بيانات نشاط",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/activity-logs/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "activity-logs",
+                "1"
+              ]
+            },
+            "description": "جلب بيانات نشاط معين. مينفعش تشوف نشاط من شركة تانية."
+          },
+          "response": []
+        }
+      ],
+      "description": "متابعة أنشطة المستخدمين في النظام"
+    },
+    {
+      "name": "💰 مدفوعات الاشتراكات (Subscription Payments)",
+      "item": [
+        {
+          "name": "📋 قائمة مدفوعات الاشتراكات",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/subscription-payments?subscription_id=1&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subscription-payments"
+              ],
+              "query": [
+                {
+                  "key": "subscription_id",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "قائمة مدفوعات الاشتراكات. Query: subscription_id, per_page. صلاحيات: company-owner بس."
+          },
+          "response": []
+        },
+        {
+          "name": "💰 بيانات دفعة اشتراك",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/subscription-payments/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subscription-payments",
+                "1"
+              ]
+            },
+            "description": "جلب بيانات دفعة اشتراك معينة. مينفعش تشوف دفعة من شركة تانية."
+          },
+          "response": []
+        }
+      ],
+      "description": "متابعة مدفوعات الاشتراكات"
+    },
+    {
+      "name": "🏥 Health Check",
+      "item": [
+        {
+          "name": "🏥 فحص صحة النظام",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "فحص صحة النظام. بيرجع: status (healthy/unhealthy), checks (database), timestamp. مش بيحتاج توكن (public endpoint)."
+          },
+          "response": []
+        }
+      ],
+      "description": "فحص صحة النظام"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}
