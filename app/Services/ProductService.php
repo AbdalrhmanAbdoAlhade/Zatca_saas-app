@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductService
 {
+    public function __construct(protected ActivityLogService $activityLog)
+    {
+    }
+
     public function list(array $filters = []): LengthAwarePaginator
     {
         return Product::query()
@@ -23,18 +27,26 @@ class ProductService
     {
         $data['company_id'] = Auth::user()->company_id;
 
-        return Product::create($data);
+        $product = Product::create($data);
+
+        $this->activityLog->log('created', 'products', $product, null, ['name_ar' => $product->name_ar]);
+
+        return $product;
     }
 
     public function update(Product $product, array $data): Product
     {
         $product->update($data);
 
+        $this->activityLog->log('updated', 'products', $product, null, $data);
+
         return $product->fresh();
     }
 
     public function delete(Product $product): void
     {
+        $this->activityLog->log('deleted', 'products', $product, ['name_ar' => $product->name_ar], null);
+
         $product->delete();
     }
 }

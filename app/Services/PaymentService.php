@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class PaymentService
 {
+    public function __construct(protected ActivityLogService $activityLog)
+    {
+    }
+
     public function list(array $filters = []): LengthAwarePaginator
     {
         return Payment::query()
@@ -32,6 +36,11 @@ class PaymentService
             if ($totalPaid >= $invoice->total_amount && $invoice->invoice_status !== 'paid') {
                 $invoice->update(['invoice_status' => 'paid']);
             }
+
+            $this->activityLog->log('created', 'payments', $payment, null, [
+                'invoice_id' => $payment->invoice_id,
+                'amount' => $payment->amount,
+            ]);
 
             return $payment;
         });

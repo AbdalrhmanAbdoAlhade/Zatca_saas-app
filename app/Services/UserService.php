@@ -10,6 +10,10 @@ use RuntimeException;
 
 class UserService
 {
+    public function __construct(protected ActivityLogService $activityLog)
+    {
+    }
+
     public function list(array $filters = []): LengthAwarePaginator
     {
         return User::query()
@@ -32,6 +36,8 @@ class UserService
         // نزود عداد الاستخدام في الاشتراك النشط - يخدم SubscriptionLimit middleware
         Auth::user()->company?->activeSubscription?->increment('users_used');
 
+        $this->activityLog->log('created', 'users', $user, null, ['name' => $user->name, 'email' => $user->email]);
+
         return $user->load('role');
     }
 
@@ -50,6 +56,8 @@ class UserService
 
         $user->update($data);
 
+        $this->activityLog->log('updated', 'users', $user, null, array_diff_key($data, ['password' => true]));
+
         return $user->fresh('role');
     }
 
@@ -62,6 +70,8 @@ class UserService
         if ($user->hasRole('company-owner')) {
             throw new RuntimeException('cannot_delete_company_owner');
         }
+
+        $this->activityLog->log('deleted', 'users', $user, ['name' => $user->name, 'email' => $user->email], null);
 
         $user->delete();
     }

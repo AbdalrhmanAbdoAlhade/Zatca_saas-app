@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerService
 {
+    public function __construct(protected ActivityLogService $activityLog)
+    {
+    }
+
     public function list(array $filters = []): LengthAwarePaginator
     {
         return Customer::query()
@@ -23,18 +27,26 @@ class CustomerService
     {
         $data['company_id'] = Auth::user()->company_id;
 
-        return Customer::create($data);
+        $customer = Customer::create($data);
+
+        $this->activityLog->log('created', 'customers', $customer, null, ['name_ar' => $customer->name_ar]);
+
+        return $customer;
     }
 
     public function update(Customer $customer, array $data): Customer
     {
         $customer->update($data);
 
+        $this->activityLog->log('updated', 'customers', $customer, null, $data);
+
         return $customer->fresh();
     }
 
     public function delete(Customer $customer): void
     {
+        $this->activityLog->log('deleted', 'customers', $customer, ['name_ar' => $customer->name_ar], null);
+
         $customer->delete();
     }
 }

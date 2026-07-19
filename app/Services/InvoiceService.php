@@ -12,6 +12,10 @@ use RuntimeException;
 
 class InvoiceService
 {
+    public function __construct(protected ActivityLogService $activityLog)
+    {
+    }
+
     public function list(array $filters = []): LengthAwarePaginator
     {
         return Invoice::query()
@@ -89,6 +93,11 @@ class InvoiceService
                 'invoice_hash' => $this->computeChainHash($invoice, $previousHash),
             ]);
 
+            $this->activityLog->log('created', 'invoices', $invoice, null, [
+                'invoice_number' => $invoice->invoice_number,
+                'total_amount' => $invoice->total_amount,
+            ]);
+
             return $invoice->fresh(['items', 'customer', 'supplier']);
         });
     }
@@ -117,6 +126,8 @@ class InvoiceService
 
             $invoice->update($data);
 
+            $this->activityLog->log('updated', 'invoices', $invoice, null, $data);
+
             return $invoice->fresh(['items', 'customer', 'supplier']);
         });
     }
@@ -126,6 +137,8 @@ class InvoiceService
         if ($invoice->invoice_status !== 'draft') {
             throw new RuntimeException('only_draft_invoices_can_be_deleted');
         }
+
+        $this->activityLog->log('deleted', 'invoices', $invoice, ['invoice_number' => $invoice->invoice_number], null);
 
         $invoice->delete();
     }

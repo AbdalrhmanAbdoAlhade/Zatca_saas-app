@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Auth;
 
 class SupplierService
 {
+    public function __construct(protected ActivityLogService $activityLog)
+    {
+    }
+
     public function list(array $filters = []): LengthAwarePaginator
     {
         return Supplier::query()
@@ -23,18 +27,26 @@ class SupplierService
     {
         $data['company_id'] = Auth::user()->company_id;
 
-        return Supplier::create($data);
+        $supplier = Supplier::create($data);
+
+        $this->activityLog->log('created', 'suppliers', $supplier, null, ['name_ar' => $supplier->name_ar]);
+
+        return $supplier;
     }
 
     public function update(Supplier $supplier, array $data): Supplier
     {
         $supplier->update($data);
 
+        $this->activityLog->log('updated', 'suppliers', $supplier, null, $data);
+
         return $supplier->fresh();
     }
 
     public function delete(Supplier $supplier): void
     {
+        $this->activityLog->log('deleted', 'suppliers', $supplier, ['name_ar' => $supplier->name_ar], null);
+
         $supplier->delete();
     }
 }

@@ -9,10 +9,16 @@ use Illuminate\Support\Facades\Request as RequestFacade;
 
 class ActivityLogService
 {
-    public function log(string $action, string $module, ?object $subject = null, ?array $oldValues = null, ?array $newValues = null): ActivityLog
-    {
+    public function log(
+        string $action,
+        string $module,
+        ?object $subject = null,
+        ?array $oldValues = null,
+        ?array $newValues = null,
+        ?int $companyId = null,
+    ): ActivityLog {
         return ActivityLog::create([
-            'company_id' => Auth::user()?->company_id,
+            'company_id' => $companyId ?? Auth::user()?->company_id,
             'user_id' => Auth::id(),
             'action' => $action,
             'module' => $module,
@@ -29,8 +35,10 @@ class ActivityLogService
     public function list(array $filters = []): LengthAwarePaginator
     {
         return ActivityLog::query()
+            ->with('user:id,name,email')
             ->when($filters['module'] ?? null, fn ($q, $module) => $q->where('module', $module))
             ->when($filters['user_id'] ?? null, fn ($q, $userId) => $q->where('user_id', $userId))
+            ->when($filters['company_id'] ?? null, fn ($q, $companyId) => $q->where('company_id', $companyId))
             ->latest('created_at')
             ->paginate($filters['per_page'] ?? 30);
     }
