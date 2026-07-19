@@ -4,15 +4,11 @@
 
 **نظام فوترة إلكترونية متكامل متوافق مع هيئة الزكاة والضريبة والجمارك السعودية (ZATCA)**
 
-[![PHP Version](https://img.shields.io/badge/PHP-8.0%2B-777BB4?logo=php&logoColor=white)](https://php.net)
-[![Laravel](https://img.shields.io/badge/Laravel-10.x-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
-[![ZATCA](https://img.shields.io/badge/ZATCA-Phase%202%20Ready-00A86B?logo=gov.uk&logoColor=white)](https://zatca.gov.sa)
-[![License](https://img.shields.io/badge/License-MIT-3DA639?logo=open-source-initiative&logoColor=white)](LICENSE)
-[![Maintenance](https://img.shields.io/badge/Maintenance-Active-2EA44F?logo=clockify&logoColor=white)](https://github.com/AbdalrhmanAbdoAlhade/Zatca_saas-app)
+[![PHP Version](https://img.shields.io/badge/PHP-8.0%2B-777BB4?logo=php&logoColor=white)](https://php.net)[![Laravel](https://img.shields.io/badge/Laravel-10.x-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)[![ZATCA](https://img.shields.io/badge/ZATCA-Phase%202%20Ready-00A86B?logo=gov.uk&logoColor=white)](https://zatca.gov.sa)[![License](https://img.shields.io/badge/License-MIT-3DA639?logo=open-source-initiative&logoColor=white)](LICENSE)[![Maintenance](https://img.shields.io/badge/Maintenance-Active-2EA44F?logo=clockify&logoColor=white)](https://github.com/AbdalrhmanAbdoAlhade/Zatca_saas-app)
 
 **SaaS متعدد المستأجرين | REST API كامل | أتمتة فواتير ZATCA**
 
-[المميزات](#-المميزات) • [التثبيت](#-التثبيت) • [الاستخدام](#-الاستخدام) • [API Reference](#-api-reference) • [ZATCA Onboarding](#-zatca-onboarding) • [الدعم](#-الدعم)
+[المميزات](#-%D8%A7%D9%84%D9%85%D9%85%D9%8A%D8%B2%D8%A7%D8%AA) • [التثبيت](#-%D8%A7%D9%84%D8%AA%D8%AB%D8%A8%D9%8A%D8%AA) • [الاستخدام](#-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%AE%D8%AF%D8%A7%D9%85) • [API Reference](#-api-reference) • [ZATCA Onboarding](#-zatca-onboarding) • [الدعم](#-%D8%A7%D9%84%D8%AF%D8%B9%D9%85)
 
 </div>
 
@@ -29,7 +25,7 @@
 ## ✨ المميزات
 
 | الميزة | الوصف |
-|--------|-------|
+| --- | --- |
 | 🔐 **توليد CSR** | توليد طلبات الشهادات (CSR) وإدارة المفاتيح الخاصة |
 | 📝 **توقيع الفواتير** | توقيع رقمي (XAdES) للفواتير باستخدام شهادات ZATCA |
 | 📱 **QR Code** | توليد رموز QR متوافقة مع معيار ZATCA (TLV) |
@@ -75,12 +71,19 @@
 ## 🛠️ المتطلبات
 
 - **PHP** >= 8.0
+
 - **Composer** - لإدارة الحزم
+
 - **Laravel** >= 10.x
+
 - **MySQL** >= 8.0 أو **PostgreSQL** >= 13
+
 - **Redis** - للـ Queues والـ Caching (اختياري)
+
 - **OpenSSL** - لتوليد المفاتيح والتوقيع
+
 - **ext-mbstring** - لدعم اللغة العربية
+
 - **ext-dom** - لمعالجة XML
 
 ---
@@ -115,7 +118,7 @@ php artisan key:generate
 php artisan migrate --seed
 ```
 
-### 5️⃣ إعداد Laravel Queues (للـ Async Jobs)
+### 5️⃣ إعداد Laravel Queues (للـ Async Jobs )
 
 ```bash
 # في .env
@@ -135,7 +138,7 @@ php artisan serve
 
 ---
 
-## 🐳 Docker (الطريقة السريعة)
+## 🐳 Docker (الطريقة السريعة )
 
 ```bash
 # بناء وتشغيل الحاويات
@@ -179,6 +182,7 @@ curl -X POST http://localhost:8000/api/v1/register \
 ```
 
 **الرد:**
+
 ```json
 {
   "status": "success",
@@ -229,7 +233,7 @@ curl -X POST http://localhost:8000/api/v1/invoices \
   }'
 ```
 
-### 4️⃣ معالجة الفاتورة كاملة (Generate → Sign → Submit)
+### 4️⃣ معالجة الفاتورة كاملة (Generate → Sign → Submit )
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/invoices/1/process \
@@ -241,10 +245,10 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 
 ## 📡 API Reference
 
-### 🔐 المصادقة (Auth)
+### 🔐 المصادقة (Auth )
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `POST` | `/api/v1/register` | تسجيل شركة جديدة + مالك |
 | `POST` | `/api/v1/login` | تسجيل الدخول |
 | `GET` | `/api/v1/me` | بيانات المستخدم الحالي |
@@ -256,7 +260,7 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ### 🏢 الشركة (Company)
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `GET` | `/api/v1/company` | بيانات الشركة |
 | `PUT` | `/api/v1/company` | تحديث بيانات الشركة |
 | `GET` | `/api/v1/company/settings` | إعدادات الشركة |
@@ -265,7 +269,7 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ### 👥 المستخدمين (Users)
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `GET` | `/api/v1/users` | قائمة المستخدمين |
 | `POST` | `/api/v1/users` | إضافة مستخدم جديد |
 | `GET` | `/api/v1/users/{id}` | بيانات مستخدم |
@@ -277,7 +281,7 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ### 🧾 الفواتير (Invoices) — القلب النابض للنظام
 
 | الطريقة | النقطة | الوصف | الحالة |
-|---------|--------|-------|--------|
+| --- | --- | --- | --- |
 | `GET` | `/api/v1/invoices` | قائمة الفواتير | — |
 | `POST` | `/api/v1/invoices` | إنشاء فاتورة جديدة | `draft` |
 | `GET` | `/api/v1/invoices/{id}` | بيانات فاتورة | — |
@@ -288,14 +292,12 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 | `POST` | `/api/v1/invoices/{id}/submit-to-zatca` | إرسال لـ ZATCA | `submitted` |
 | `POST` | `/api/v1/invoices/{id}/process` | **العملية كاملة** | `submitted` |
 
-> **أنواع الفواتير:** `tax_invoice` | `simplified_tax_invoice` | `credit_note` | `debit_note` | `purchase_invoice` | `expense_invoice`
->
-> **حالات الفاتورة:** `draft` → `xml_generated` → `signed` → `submitted` → `cancelled`
+> **أنواع الفواتير:** `tax_invoice` | `simplified_tax_invoice` | `credit_note` | `debit_note` | `purchase_invoice` | `expense_invoice`**حالات الفاتورة:** `draft` → `xml_generated` → `signed` → `submitted` → `cancelled`
 
 ### 👤 العملاء (Customers)
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `GET` | `/api/v1/customers` | قائمة العملاء |
 | `POST` | `/api/v1/customers` | إضافة عميل |
 | `GET` | `/api/v1/customers/{id}` | بيانات عميل |
@@ -305,7 +307,7 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ### 📦 المنتجات (Products)
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `GET` | `/api/v1/products` | قائمة المنتجات |
 | `POST` | `/api/v1/products` | إضافة منتج |
 | `GET` | `/api/v1/products/{id}` | بيانات منتج |
@@ -315,7 +317,7 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ### 🏭 الموردين (Suppliers)
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `GET` | `/api/v1/suppliers` | قائمة الموردين |
 | `POST` | `/api/v1/suppliers` | إضافة مورد |
 | `GET` | `/api/v1/suppliers/{id}` | بيانات مورد |
@@ -325,7 +327,7 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ### 💳 المدفوعات (Payments)
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `GET` | `/api/v1/payments` | قائمة المدفوعات |
 | `POST` | `/api/v1/payments` | إضافة دفعة |
 | `GET` | `/api/v1/payments/{id}` | بيانات دفعة |
@@ -333,7 +335,7 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ### 📊 التقارير (Reports)
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `GET` | `/api/v1/reports` | قائمة التقارير |
 | `POST` | `/api/v1/reports` | طلب تقرير جديد |
 | `GET` | `/api/v1/reports/{id}` | بيانات تقرير |
@@ -344,7 +346,7 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ### 🏛️ ZATCA Onboarding
 
 | الطريقة | النقطة | الوصف | المرحلة |
-|---------|--------|-------|---------|
+| --- | --- | --- | --- |
 | `GET` | `/api/v1/zatca` | إعدادات ZATCA | — |
 | `POST` | `/api/v1/zatca/compliance-csid` | توليد Compliance CSID | 1 |
 | `POST` | `/api/v1/zatca/compliance-check` | فحص Compliance | 2 |
@@ -354,14 +356,14 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ### 📋 سجل الأنشطة (Activity Logs)
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `GET` | `/api/v1/activity-logs` | قائمة الأنشطة |
 | `GET` | `/api/v1/activity-logs/{id}` | بيانات نشاط |
 
 ### 🏥 Health Check
 
 | الطريقة | النقطة | الوصف |
-|---------|--------|-------|
+| --- | --- | --- |
 | `GET` | `/api/health` | فحص صحة النظام (Public) |
 
 ---
@@ -369,8 +371,11 @@ curl -X POST http://localhost:8000/api/v1/invoices/1/process \
 ## 🔐 آلية المصادقة
 
 - كل الـ endpoints (ما عدا التسجيل والدخول وـ Health Check) بتحتاج `Authorization: Bearer {token}`
+
 - التوكن بيتعمل وقت تسجيل الدخول أو تسجيل شركة جديدة
+
 - التوكن بيتسجل مع بيانات الجهاز (IP, User-Agent, Device Name)
+
 - ممكن تسجيل الخروج من جهاز واحد أو كل الأجهزة
 
 ```bash
@@ -382,11 +387,14 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 
 ---
 
-## 🏢 Multi-Tenancy (متعدد المستأجرين)
+## 🏢 Multi-Tenancy (متعدد المستأجرين )
 
 - كل مستخدم تابع لشركة واحدة
+
 - المستخدم ميقدرش يشوف/يعدل بيانات شركة تانية
+
 - الـ `company_id` بيتحط تلقائي من التوكن
+
 - عزل كامل للبيانات على مستوى قاعدة البيانات والـ Queries
 
 ---
@@ -435,7 +443,7 @@ curl -X POST http://localhost:8000/api/v1/zatca/activate-production \
 
 ---
 
-## 🧾 سير عمل الفاتورة (Invoice Lifecycle)
+## 🧾 سير عمل الفاتورة (Invoice Lifecycle )
 
 ```
 ┌─────────┐    ┌─────────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
@@ -448,12 +456,7 @@ curl -X POST http://localhost:8000/api/v1/zatca/activate-production \
   deletable     (locked)           (locked)        (locked)
 ```
 
-> ⚠️ **ملاحظات مهمة:**
-> - الفاتورة لازم تعدي المراحل بالترتيب
-> - مينفعش تعدل/تحذف فاتورة بعد ما تتبعت لـ ZATCA
-> - الـ ICV (Invoice Counter Value) بيزيد تلقائي لكل شركة
-> - الـ Invoice Hash بيرتبط بالفاتورة السابقة (سلسلة متصلة)
-> - الـ Subscription Limit بيمنعك لو وصلت للحد الأقصى
+> ⚠️ **ملاحظات مهمة:**- الفاتورة لازم تعدي المراحل بالترتيب- مينفعش تعدل/تحذف فاتورة بعد ما تتبعت لـ ZATCA- الـ ICV (Invoice Counter Value) بيزيد تلقائي لكل شركة- الـ Invoice Hash بيرتبط بالفاتورة السابقة (سلسلة متصلة)- الـ Subscription Limit بيمنعك لو وصلت للحد الأقصى
 
 ---
 
@@ -515,10 +518,74 @@ Zatca_saas-app/
 
 ---
 
+## 🚀 استخدام Postman Collection
+
+لتسهيل اختبار وتطوير الـ API، تم توفير Postman Collection شاملة تحتوي على جميع نقاط النهاية الرئيسية.
+
+### 📥 استيراد المجموعة
+
+1. قم بتحميل ملف `Zatca_saas-app_Postman_Collection.json` من مجلد `postman/` في هذا المستودع.
+
+1. افتح تطبيق Postman.
+
+1. اضغط على زر **Import** في الزاوية العلوية اليسرى.
+
+1. اختر الملف الذي قمت بتحميله.
+
+### ⚙️ إعداد المتغيرات
+
+تحتوي المجموعة على متغيرات بيئة (Environment Variables) لتبسيط الاستخدام:
+
+- `baseUrl`: رابط الـ API الأساسي (مثال: `http://localhost:8000/` ).
+
+- `token`: يتم تحديثه تلقائياً بعد تسجيل الدخول بنجاح.
+
+- `user_id`, `company_id`, `customer_id`, `supplier_id`, `product_id`, `invoice_id`: يتم تحديثها تلقائياً بعد إنشاء الموارد ذات الصلة.
+
+- `otp`, `invoice_base64`, `invoice_hash`, `uuid`: تستخدم لعمليات تكامل ZATCA.
+
+**خطوات البدء السريع:**
+
+1. بعد استيراد المجموعة، قم بإنشاء بيئة جديدة في Postman أو استخدم البيئة الافتراضية.
+
+1. قم بتعيين قيمة `baseUrl` لتشير إلى عنوان الـ API الخاص بك (مثال: `http://localhost:8000` ).
+
+1. ابدأ بطلب **Register Company** لإنشاء شركة ومستخدم مالك.
+
+1. ثم استخدم طلب **Login** لتسجيل الدخول والحصول على `token`، والذي سيتم حفظه تلقائياً في متغير البيئة `token`.
+
+1. يمكنك الآن استخدام الـ `token` في جميع الطلبات الأخرى التي تتطلب مصادقة.
+
+### 📂 هيكل المجموعة
+
+تم تنظيم الطلبات في مجلدات منطقية:
+
+- **Authentication:** تسجيل، دخول، خروج، إدارة الجلسات.
+
+- **Company Management:** تحديث بيانات الشركة وإعداداتها.
+
+- **User Management:** إضافة، تحديث، حذف المستخدمين (يتطلب صلاحيات المالك).
+
+- **Customer Management:** إدارة بيانات العملاء.
+
+- **Supplier Management:** إدارة بيانات الموردين.
+
+- **Product Management:** إدارة بيانات المنتجات.
+
+- **Invoice Management:** إنشاء، عرض، تحديث، حذف الفواتير، بالإضافة إلى عمليات توليد XML، التوقيع، والإرسال إلى ZATCA.
+
+- **ZATCA Integration:** عمليات الربط مع هيئة الزكاة والضريبة والجمارك (ZATCA Onboarding).
+
+- **Admin Routes:** مسارات خاصة بمسؤول النظام (Super Admin) لإدارة الشركات والخطط والمستخدمين.
+
+**ملاحظة:** بعض الطلبات تتطلب تحديث متغيرات مثل `customer_id` أو `invoice_id` يدوياً بعد إنشاء المورد لأول مرة، أو سيتم تحديثها تلقائياً إذا كانت تحتوي على `test` script في Postman. تأكد من مراجعة الـ `response` لكل طلب للحصول على الـ IDs اللازمة.
+
+---
+
 ## 🌐 بيئات ZATCA
 
 | البيئة | URL | الاستخدام |
-|--------|-----|-----------|
+| --- | --- | --- |
 | **Sandbox** | `https://gw-fatoora.zatca.gov.sa/e-invoicing/sandbox` | التطوير والاختبار |
 | **Simulation** | `https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation` | المحاكاة قبل الإنتاج |
 | **Production** | `https://gw-fatoora.zatca.gov.sa/e-invoicing/core` | الإنتاج الفعلي |
@@ -528,10 +595,15 @@ Zatca_saas-app/
 ## 🛡️ الأمان
 
 - **تشفير الشهادات:** المفاتيح الخاصة مخزنة بشكل مشفر
+
 - **عزل البيانات:** Multi-tenancy مع عزل كامل
+
 - **إدارة الجلسات:** تتبع كل جهاز مسجل دخول
-- **صلاحيات مرنة:** RBAC (Role-Based Access Control)
+
+- **صلاحيات مرنة:** RBAC (Role-Based Access Control )
+
 - **Rate Limiting:** حماية من الـ DDoS
+
 - **Input Validation:** Validation شاملة على كل الـ endpoints
 
 ---
@@ -541,10 +613,14 @@ Zatca_saas-app/
 نرحب بالمساهمات! إذا كنت ترغب في المساهمة:
 
 1. 🍴 Fork المشروع
-2. 🌿 أنشئ فرعًا جديدًا (`git checkout -b feature/AmazingFeature`)
-3. 💾 Commit التغييرات (`git commit -m 'Add some AmazingFeature'`)
-4. 📤 Push للفرع (`git push origin feature/AmazingFeature`)
-5. 🔃 افتح Pull Request
+
+1. 🌿 أنشئ فرعًا جديدًا (`git checkout -b feature/AmazingFeature`)
+
+1. 💾 Commit التغييرات (`git commit -m 'Add some AmazingFeature'`)
+
+1. 📤 Push للفرع (`git push origin feature/AmazingFeature`)
+
+1. 🔃 افتح Pull Request
 
 ---
 
@@ -569,6 +645,7 @@ Zatca_saas-app/
 ## 📞 الدعم والتواصل
 
 - 🐛 **Issues:** [GitHub Issues](https://github.com/AbdalrhmanAbdoAlhade/Zatca_saas-app/issues)
+
 - 💬 **Discussions:** [GitHub Discussions](https://github.com/AbdalrhmanAbdoAlhade/Zatca_saas-app/discussions)
 
 ---
