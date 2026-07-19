@@ -1,6 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\V1\Admin\AdminActivityLogController;
+use App\Http\Controllers\Api\V1\Admin\AdminInvoiceController;
+use App\Http\Controllers\Api\V1\Admin\AdminStaffController;
+use App\Http\Controllers\Api\V1\Admin\CompanyManagementController;
+use App\Http\Controllers\Api\V1\Admin\PlanController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CompanyController;
@@ -93,11 +98,11 @@ Route::prefix('v1')->group(function () {
 
         // ZATCA Onboarding - Owner و Accountant بس (بيانات حساسة جداً)
         Route::middleware('role:company-owner,accountant')->prefix('zatca')->group(function () {
-            Route::get('settings', [ZatcaController::class, 'show']);
-            Route::post('onboarding/compliance-csid', [ZatcaController::class, 'generateComplianceCsid']);
-            Route::post('onboarding/compliance-check', [ZatcaController::class, 'complianceCheck']);
-            Route::post('onboarding/production-csid', [ZatcaController::class, 'requestProductionCsid']);
-            Route::post('onboarding/activate-production', [ZatcaController::class, 'activateProduction']);
+            Route::get('/', [ZatcaController::class, 'show']);
+            Route::post('compliance-csid', [ZatcaController::class, 'generateComplianceCsid']);
+            Route::post('compliance-check', [ZatcaController::class, 'complianceCheck']);
+            Route::post('production-csid', [ZatcaController::class, 'requestProductionCsid']);
+            Route::post('activate-production', [ZatcaController::class, 'activateProduction']);
         });
 
         // بروفايل الشركة، الإعدادات، وإدارة الموظفين - Owner بس
@@ -109,6 +114,35 @@ Route::prefix('v1')->group(function () {
                 ->middleware('subscription.limit:users');
             Route::put('users/{user}', [UserController::class, 'update']);
             Route::delete('users/{user}', [UserController::class, 'destroy']);
+        });
+
+        // لوحة السوبر أدمن - عرض متاح لـ super-admin وplatform-support
+        Route::middleware('role:super-admin,platform-support')->prefix('admin')->group(function () {
+            Route::get('stats', [CompanyManagementController::class, 'stats']);
+            Route::get('companies', [CompanyManagementController::class, 'index']);
+            Route::get('companies/{id}', [CompanyManagementController::class, 'show']);
+            Route::get('invoices', [AdminInvoiceController::class, 'index']);
+            Route::get('invoices/{id}', [AdminInvoiceController::class, 'show']);
+            Route::get('activity-logs', [AdminActivityLogController::class, 'index']);
+            Route::get('plans', [PlanController::class, 'index']);
+        });
+
+        // تعليق/تفعيل/إنشاء/حذف الشركات + الاشتراكات + الخطط + فريق المنصة - super-admin بس
+        Route::middleware('role:super-admin')->prefix('admin')->group(function () {
+            Route::post('companies', [CompanyManagementController::class, 'store']);
+            Route::delete('companies/{company}', [CompanyManagementController::class, 'destroy']);
+            Route::put('companies/{company}/suspend', [CompanyManagementController::class, 'suspend']);
+            Route::put('companies/{company}/activate', [CompanyManagementController::class, 'activate']);
+            Route::post('companies/{company}/subscriptions', [CompanyManagementController::class, 'activateSubscription']);
+
+            Route::post('plans', [PlanController::class, 'store']);
+            Route::put('plans/{plan}', [PlanController::class, 'update']);
+            Route::delete('plans/{plan}', [PlanController::class, 'destroy']);
+
+            Route::get('staff', [AdminStaffController::class, 'index']);
+            Route::post('staff', [AdminStaffController::class, 'store']);
+            Route::put('staff/{staff}', [AdminStaffController::class, 'update']);
+            Route::delete('staff/{staff}', [AdminStaffController::class, 'destroy']);
         });
     });
 });
