@@ -134,7 +134,7 @@ Route::prefix('v1')->group(function () {
             Route::put('companies/{company}/suspend', [CompanyManagementController::class, 'suspend']);
             Route::put('companies/{company}/activate', [CompanyManagementController::class, 'activate']);
             Route::post('companies/{company}/subscriptions', [CompanyManagementController::class, 'activateSubscription']);
-
+            Route::patch('subscriptions/toggle-auto-renew', [SubscriptionPaymentController::class, 'toggleAutoRenew']);
             Route::post('plans', [PlanController::class, 'store']);
             Route::put('plans/{plan}', [PlanController::class, 'update']);
             Route::delete('plans/{plan}', [PlanController::class, 'destroy']);
