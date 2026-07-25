@@ -21,6 +21,23 @@ class SubscriptionPaymentController extends Controller
 
         return $this->success(SubscriptionPaymentResource::collection($payments)->response()->getData(true));
     }
+  public function toggleAutoRenew(Request $request)
+{
+    $companyId = Auth::user()->company_id;
+    
+    $subscription = Subscription::where('company_id', $companyId)
+        ->where('status', 'active')
+        ->firstOrFail();
+
+    $subscription->update([
+        'auto_renew' => !$subscription->auto_renew
+    ]);
+
+    return response()->json([
+        'message' => 'تم تغيير حالة التجديد التلقائي بنجاح',
+        'auto_renew' => $subscription->auto_renew
+    ]);
+}
 
     public function show(SubscriptionPayment $subscriptionPayment)
     {
