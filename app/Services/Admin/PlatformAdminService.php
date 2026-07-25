@@ -40,34 +40,41 @@ class PlatformAdminService
             ->findOrFail($id);
     }
 
-    /**
+  /**
      * إنشاء شركة جديدة من لوحة الأدمن + أول يوزر فيها (Company Owner) + الإعدادات
      * الافتراضية + اشتراك (بالخطة المحددة، أو "free" لو مفيش خطة متبعتة).
      */
     public function createCompany(array $companyData, array $ownerData, ?int $planId, User $actingAdmin): Company
     {
         return DB::transaction(function () use ($companyData, $ownerData, $planId, $actingAdmin) {
-            $company = Company::create(array_merge($companyData, ['status' => 'active']));
+            
+            // ندمج اسم المالك وحالة الشركة مع باقي بيانات الشركة
+            $companyPayload = array_merge($companyData, [
+                'status'     => 'active',
+                'owner_name' => $ownerData['name'], // إسناد اسم المالك لحقل owner_name
+            ]);
+
+            $company = Company::create($companyPayload);
 
             $ownerRole = Role::where('slug', 'company-owner')->firstOrFail();
 
             $owner = User::withoutGlobalScopes()->create([
                 'company_id' => $company->id,
-                'role_id' => $ownerRole->id,
-                'name' => $ownerData['name'],
-                'email' => $ownerData['email'],
-                'phone' => $ownerData['phone'] ?? null,
-                'password' => Hash::make($ownerData['password']),
-                'status' => 'active',
+                'role_id'   => $ownerRole->id,
+                'name'       => $ownerData['name'],
+                'email'      => $ownerData['email'],
+                'phone'      => $ownerData['phone'] ?? null,
+                'password'   => Hash::make($ownerData['password']),
+                'status'     => 'active',
             ]);
 
             $company->update(['owner_user_id' => $owner->id]);
 
             CompanyZatcaSetting::create([
-                'company_id' => $company->id,
-                'environment' => 'sandbox',
+                'company_id'        => $company->id,
+                'environment'       => 'sandbox',
                 'compliance_status' => 'not_started',
-                'onboarding_stage' => 0,
+                'onboarding_stage'  => 0,
             ]);
 
             CompanySetting::create(['company_id' => $company->id]);
@@ -78,20 +85,20 @@ class PlatformAdminService
 
             if ($plan) {
                 Subscription::create([
-                    'company_id' => $company->id,
-                    'plan_id' => $plan->id,
-                    'start_date' => now(),
-                    'end_date' => now()->addYear(),
+                    'company_id'     => $company->id,
+                    'plan_id'        => $plan->id,
+                    'start_date'     => now(),
+                    'end_date'       => now()->addYear(),
                     'invoices_limit' => $plan->max_invoices,
-                    'users_limit' => $plan->max_users,
-                    'auto_renew' => true,
-                    'status' => 'active',
+                    'users_limit'    => $plan->max_users,
+                    'auto_renew'     => true,
+                    'status'         => 'active',
                 ]);
             }
 
             $this->activityLog->log('created', 'admin.companies', $company, null, [
-                'trade_name_ar' => $company->trade_name_ar,
-                'vat_number' => $company->vat_number,
+                'trade_name_ar'    => $company->trade_name_ar,
+                'vat_number'       => $company->vat_number,
                 'created_by_admin' => $actingAdmin->id,
             ], companyId: $company->id);
 
