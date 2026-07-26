@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\InvoiceController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ReportController;
+use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\SubscriptionPaymentController;
 use App\Http\Controllers\Api\V1\SupplierController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -60,34 +61,53 @@ Route::prefix('v1')->group(function () {
         Route::get('users', [UserController::class, 'index']);
         Route::get('users/{user}', [UserController::class, 'show']);
 
-        // كتابة (إنشاء/تعديل) - Owner, Accountant, Sales بس (مش Viewer)
-        Route::middleware('role:company-owner,accountant,sales')->group(function () {
-            Route::post('customers', [CustomerController::class, 'store']);
-            Route::put('customers/{customer}', [CustomerController::class, 'update']);
-            Route::post('suppliers', [SupplierController::class, 'store']);
-            Route::put('suppliers/{supplier}', [SupplierController::class, 'update']);
-            Route::post('products', [ProductController::class, 'store']);
-            Route::put('products/{product}', [ProductController::class, 'update']);
+        // كتابة (إنشاء/تعديل) - Owner, Accountant, Sales بس (مش Viewer)، أو أي دور
+        // مخصص عنده الصلاحية المحددة (مثلاً customers.create)
+        Route::group([], function () {
+            Route::post('customers', [CustomerController::class, 'store'])
+                ->middleware('role:company-owner,accountant,sales,customers.create');
+            Route::put('customers/{customer}', [CustomerController::class, 'update'])
+                ->middleware('role:company-owner,accountant,sales,customers.update');
+            Route::post('suppliers', [SupplierController::class, 'store'])
+                ->middleware('role:company-owner,accountant,sales,suppliers.create');
+            Route::put('suppliers/{supplier}', [SupplierController::class, 'update'])
+                ->middleware('role:company-owner,accountant,sales,suppliers.update');
+            Route::post('products', [ProductController::class, 'store'])
+                ->middleware('role:company-owner,accountant,sales,products.create');
+            Route::put('products/{product}', [ProductController::class, 'update'])
+                ->middleware('role:company-owner,accountant,sales,products.update');
 
             Route::post('invoices', [InvoiceController::class, 'store'])
-                ->middleware('subscription.limit:invoices');
-            Route::put('invoices/{invoice}', [InvoiceController::class, 'update']);
-            Route::post('invoices/{invoice}/generate-xml', [InvoiceController::class, 'generateXml']);
-            Route::post('invoices/{invoice}/sign-xml', [InvoiceController::class, 'signXml']);
-            Route::post('invoices/{invoice}/submit-to-zatca', [InvoiceController::class, 'submitToZatca']);
-            Route::post('invoices/{invoice}/process', [InvoiceController::class, 'process']);
+                ->middleware(['role:company-owner,accountant,sales,invoices.create', 'subscription.limit:invoices']);
+            Route::put('invoices/{invoice}', [InvoiceController::class, 'update'])
+                ->middleware('role:company-owner,accountant,sales,invoices.update');
+            Route::post('invoices/{invoice}/generate-xml', [InvoiceController::class, 'generateXml'])
+                ->middleware('role:company-owner,accountant,sales,invoices.process_zatca');
+            Route::post('invoices/{invoice}/sign-xml', [InvoiceController::class, 'signXml'])
+                ->middleware('role:company-owner,accountant,sales,invoices.process_zatca');
+            Route::post('invoices/{invoice}/submit-to-zatca', [InvoiceController::class, 'submitToZatca'])
+                ->middleware('role:company-owner,accountant,sales,invoices.process_zatca');
+            Route::post('invoices/{invoice}/process', [InvoiceController::class, 'process'])
+                ->middleware('role:company-owner,accountant,sales,invoices.process_zatca');
         });
 
-        // حذف - Owner و Accountant بس
-        Route::middleware('role:company-owner,accountant')->group(function () {
-            Route::delete('customers/{customer}', [CustomerController::class, 'destroy']);
-            Route::delete('suppliers/{supplier}', [SupplierController::class, 'destroy']);
-            Route::delete('products/{product}', [ProductController::class, 'destroy']);
-            Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy']);
+        // حذف - Owner و Accountant بس، أو دور مخصص عنده صلاحية الحذف المحددة
+        Route::group([], function () {
+            Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])
+                ->middleware('role:company-owner,accountant,customers.delete');
+            Route::delete('suppliers/{supplier}', [SupplierController::class, 'destroy'])
+                ->middleware('role:company-owner,accountant,suppliers.delete');
+            Route::delete('products/{product}', [ProductController::class, 'destroy'])
+                ->middleware('role:company-owner,accountant,products.delete');
+            Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])
+                ->middleware('role:company-owner,accountant,invoices.delete');
 
-            Route::post('payments', [PaymentController::class, 'store']);
-            Route::post('reports', [ReportController::class, 'store']);
-            Route::delete('reports/{report}', [ReportController::class, 'destroy']);
+            Route::post('payments', [PaymentController::class, 'store'])
+                ->middleware('role:company-owner,accountant,payments.create');
+            Route::post('reports', [ReportController::class, 'store'])
+                ->middleware('role:company-owner,accountant,reports.create');
+            Route::delete('reports/{report}', [ReportController::class, 'destroy'])
+                ->middleware('role:company-owner,accountant,reports.delete');
         });
 
         // مدفوعات الاشتراكات وسجل النشاطات - حساسة، Owner بس
@@ -114,6 +134,14 @@ Route::prefix('v1')->group(function () {
                 ->middleware('subscription.limit:users');
             Route::put('users/{user}', [UserController::class, 'update']);
             Route::delete('users/{user}', [UserController::class, 'destroy']);
+
+            // إدارة الأدوار المخصصة لموظفي الشركة (زي ما وضّحنا: الأدوار الأساسية
+            // ثابتة، بس Owner يقدر يعمل أدوار إضافية مخصصة بصلاحيات محددة)
+            Route::get('roles', [RoleController::class, 'index']);
+            Route::get('roles/permissions-catalog', [RoleController::class, 'permissionsCatalog']);
+            Route::post('roles', [RoleController::class, 'store']);
+            Route::put('roles/{role}', [RoleController::class, 'update']);
+            Route::delete('roles/{role}', [RoleController::class, 'destroy']);
         });
 
         // لوحة السوبر أدمن - عرض متاح لـ super-admin وplatform-support
@@ -134,7 +162,7 @@ Route::prefix('v1')->group(function () {
             Route::put('companies/{company}/suspend', [CompanyManagementController::class, 'suspend']);
             Route::put('companies/{company}/activate', [CompanyManagementController::class, 'activate']);
             Route::post('companies/{company}/subscriptions', [CompanyManagementController::class, 'activateSubscription']);
-            Route::patch('subscriptions/toggle-auto-renew', [SubscriptionPaymentController::class, 'toggleAutoRenew']);
+
             Route::post('plans', [PlanController::class, 'store']);
             Route::put('plans/{plan}', [PlanController::class, 'update']);
             Route::delete('plans/{plan}', [PlanController::class, 'destroy']);
@@ -143,6 +171,13 @@ Route::prefix('v1')->group(function () {
             Route::post('staff', [AdminStaffController::class, 'store']);
             Route::put('staff/{staff}', [AdminStaffController::class, 'update']);
             Route::delete('staff/{staff}', [AdminStaffController::class, 'destroy']);
+
+            // إدارة أدوار فريق المنصة نفسها - بديل ديناميكي لقائمة super-admin/platform-support الثابتة
+            Route::get('roles', [RoleController::class, 'index']);
+            Route::get('roles/permissions-catalog', [RoleController::class, 'permissionsCatalog']);
+            Route::post('roles', [RoleController::class, 'store']);
+            Route::put('roles/{role}', [RoleController::class, 'update']);
+            Route::delete('roles/{role}', [RoleController::class, 'destroy']);
         });
     });
 });
