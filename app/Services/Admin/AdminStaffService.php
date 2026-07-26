@@ -11,9 +11,6 @@ use RuntimeException;
 
 class AdminStaffService
 {
-    /** الأدوار المسموح استخدامها لفريق المنصة بس - أي رول تاني (زي accountant) ممنوع هنا */
-    protected const PLATFORM_ROLES = ['super-admin', 'platform-support'];
-
     public function __construct(protected ActivityLogService $activityLog)
     {
     }
@@ -31,18 +28,14 @@ class AdminStaffService
 
     public function create(array $data): User
     {
-        $role = Role::whereIn('slug', self::PLATFORM_ROLES)->findOrFail($data['role_id']);
-
-        if (! in_array($role->slug, self::PLATFORM_ROLES, true)) {
-            throw new RuntimeException('invalid_platform_role');
-        }
+        $role = $this->validatedPlatformRole($data['role_id']);
 
         $staff = User::withoutGlobalScopes()->create([
             'company_id' => null,
             'role_id' => $role->id,
             'name' => $data['name'],
             'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
+            'phone' => $data['phone'],
             'password' => Hash::make($data['password']),
             'status' => 'active',
             'preferred_locale' => $data['preferred_locale'] ?? 'ar',
@@ -66,10 +59,7 @@ class AdminStaffService
         }
 
         if (isset($data['role_id'])) {
-            $role = Role::find($data['role_id']);
-            if (! $role || ! in_array($role->slug, self::PLATFORM_ROLES, true)) {
-                throw new RuntimeException('invalid_platform_role');
-            }
+            $this->validatedPlatformRole($data['role_id']);
         }
 
         if (! empty($data['password'])) {
@@ -96,6 +86,21 @@ class AdminStaffService
         $this->activityLog->log('deleted', 'admin.staff', $staff, ['name' => $staff->name, 'email' => $staff->email], null, companyId: null);
 
         $staff->delete();
+    }
+
+    /**
+     * أي دور context='platform' سواء نظامي (super-admin/platform-support) أو
+     * مخصص أنشأه super-admin عن طريق RoleController - كلهم صالحين هنا.
+     */
+    protected function validatedPlatformRole(int $roleId): Role
+    {
+        $role = Role::where('id', $roleId)->where('context', 'platform')->first();
+
+        if (! $role) {
+            throw new RuntimeException('invalid_platform_role');
+        }
+
+        return $role;
     }
 
     protected function guardIsPlatformStaff(User $staff): void

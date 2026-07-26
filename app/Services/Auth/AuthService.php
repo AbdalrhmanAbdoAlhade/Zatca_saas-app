@@ -24,10 +24,8 @@ class AuthService
     public function registerCompany(array $companyData, array $ownerData, ?string $deviceName, ?string $ip, ?string $userAgent): array
     {
         return DB::transaction(function () use ($companyData, $ownerData, $deviceName, $ip, $userAgent) {
-            // ✅ FIX: أضفنا owner_name من بيانات المالك
             $company = Company::create(array_merge($companyData, [
                 'status' => 'active',
-                'owner_name' => $ownerData['name'], // ← السطر المضاف
             ]));
 
             $ownerRole = Role::where('slug', 'company-owner')->firstOrFail();
@@ -35,7 +33,6 @@ class AuthService
             $user = User::create([
                 'company_id' => $company->id,
                 'role_id' => $ownerRole->id,
-
                 'name' => $ownerData['name'],
                 'email' => $ownerData['email'],
                 'phone' => $ownerData['phone'] ?? null,
@@ -99,7 +96,9 @@ class AuthService
             throw new AuthenticationException('user_inactive');
         }
 
-        if (! $user->company || ! $user->company->isActive()) {
+        $isSuperAdmin = $user->role?->slug === 'super-admin';
+
+        if (! $isSuperAdmin && (! $user->company || ! $user->company->isActive())) {
             throw new AuthenticationException('company_suspended');
         }
 
