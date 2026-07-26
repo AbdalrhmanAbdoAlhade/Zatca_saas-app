@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateAdminStaffRequest extends FormRequest
 {
@@ -18,9 +19,13 @@ class UpdateAdminStaffRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => ['sometimes', 'required', 'email', 'max:255', 'unique:users,email,'.$staffId],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['sometimes', 'required', 'string', 'max:20', 'unique:users,phone,'.$staffId],
             'password' => ['nullable', 'string', 'min:8'],
-            'role_id' => ['sometimes', 'required', 'exists:roles,id'],
+            'role_id' => [
+                'sometimes',
+                'required',
+                Rule::exists('roles', 'id')->where('context', 'platform'),
+            ],
             'status' => ['sometimes', 'in:active,inactive'],
         ];
     }

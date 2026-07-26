@@ -57,4 +57,12 @@ class User extends Authenticatable
     {
         return $this->role?->slug === $slug;
     }
+
+    /**
+     * بتفحص صلاحية اليوزر عن طريق دوره - أساس نظام الأدوار القابلة للتخصيص.
+     */
+    public function hasPermission(string $slug): bool
+    {
+        return $this->role?->hasPermission($slug) ?? false;
+    }
 }
